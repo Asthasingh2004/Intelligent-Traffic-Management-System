@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Traffic Dashboard - ITMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #030810;
+      --surface: #060f1e;
+      --panel:   #0a1628;
+      --border:  rgba(0,255,180,0.12);
+      --green:   #00ffb4;
+      --red:     #ff2d55;
+      --amber:   #ffaa00;
+      --dim:     rgba(255,255,255,0.35);
+      --mono:    'Share Tech Mono', monospace;
+      --display: 'Rajdhani', sans-serif;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: white;
+      font-family: var(--display);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content:''; position:fixed; inset:0;
+      background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+      pointer-events:none; z-index:999;
+    }
+
+    .sys-bar {
+      background:#020710;
+      border-bottom:1px solid rgba(0,255,180,0.06);
+      padding:4px 28px;
+      display:flex; justify-content:space-between;
+      font-family:var(--mono); font-size:10px;
+      color:rgba(255,255,255,0.2); letter-spacing:1px;
+    }
+
+    header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 28px;
+      border-bottom:1px solid var(--border);
+      background:var(--surface);
+    }
+
+    .header-left { display:flex; align-items:center; gap:16px; }
+
+    .logo-mark {
+      width:36px; height:36px; border:2px solid var(--green);
+      display:grid; place-items:center;
+      font-family:var(--mono); font-size:11px;
+      color:var(--green); letter-spacing:1px;
+    }
+
+    .system-title {
+      font-size:13px; font-weight:700;
+      letter-spacing:4px; color:rgba(255,255,255,0.8); text-transform:uppercase;
+    }
+
+    .system-sub {
+      font-family:var(--mono); font-size:10px;
+      color:var(--dim); letter-spacing:2px; margin-top:2px;
+    }
+
+    .status-dot {
+      display:flex; align-items:center; gap:8px;
+      font-family:var(--mono); font-size:11px; color:var(--green);
+    }
+
+    .dot {
+      width:8px; height:8px; border-radius:50%;
+      background:var(--green); animation:blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .clock { font-family:var(--mono); font-size:13px; color:rgba(255,255,255,0.6); letter-spacing:2px; }
+
+    main {
+      padding:20px 24px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+
+    .lane {
+      background:var(--surface);
+      border:1px solid var(--border);
+      position:relative; overflow:hidden;
+      transition:border-color 0.3s;
+    }
+
+    .lane.active-green { border-color:rgba(0,255,180,0.5); }
+    .lane.active-amber { border-color:rgba(255,170,0,0.4); }
+    .lane.active-red   { border-color:rgba(255,45,85,0.2); }
+    .lane.emergency    { border-color:var(--red); box-shadow:0 0 20px rgba(255,45,85,0.2); }
+
+    .lane::before, .lane::after { content:''; position:absolute; width:12px; height:12px; }
+    .lane::before { top:0; left:0; border-top:2px solid var(--green); border-left:2px solid var(--green); }
+    .lane::after  { bottom:0; right:0; border-bottom:2px solid var(--green); border-right:2px solid var(--green); }
+
+    .lane-header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 14px;
+      border-bottom:1px solid var(--border);
+      background:rgba(0,255,180,0.03);
+    }
+
+    .lane-id   { font-family:var(--mono); font-size:11px; color:var(--green); letter-spacing:3px; }
+    .lane-name { font-size:15px; font-weight:700; letter-spacing:2px; color:rgba(255,255,255,0.9); }
+
+    .signal-badge {
+      font-family:var(--mono); font-size:10px;
+      padding:3px 10px; letter-spacing:2px; border:1px solid; text-transform:uppercase;
+    }
+
+    .signal-badge.green { color:var(--green); border-color:var(--green); background:rgba(0,255,180,0.08); }
+    .signal-badge.red   { color:var(--red);   border-color:var(--red);   background:rgba(255,45,85,0.08); }
+    .signal-badge.amber { color:var(--amber); border-color:var(--amber); background:rgba(255,170,0,0.08); }
+
+    .lane-body { display:flex; gap:0; }
+
+    .tl-column {
+      width:52px; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:10px;
+      padding:16px 0; border-right:1px solid var(--border);
+      background:rgba(0,0,0,0.2);
+    }
+
+    .tl-housing {
+      width:32px; background:#0d1a28;
+      border:1px solid rgba(255,255,255,0.08); border-radius:16px;
+      padding:8px 0; display:flex; flex-direction:column;
+      align-items:center; gap:8px;
+    }
+
+    .bulb { width:18px; height:18px; border-radius:50%; transition:all 0.4s; }
+    .bulb.r { background:#1a0608; border:1px solid rgba(255,45,85,0.2); }
+    .bulb.a { background:#1a1208; border:1px solid rgba(255,170,0,0.2); }
+    .bulb.g { background:#051a12; border:1px solid rgba(0,255,180,0.2); }
+    .bulb.r.on { background:var(--red);   box-shadow:0 0 12px var(--red),   0 0 24px rgba(255,45,85,0.4); }
+    .bulb.a.on { background:var(--amber); box-shadow:0 0 12px var(--amber), 0 0 24px rgba(255,170,0,0.4); }
+    .bulb.g.on { background:var(--green); box-shadow:0 0 12px var(--green), 0 0 24px rgba(0,255,180,0.4); }
+
+    .feed-area { flex:1; padding:12px 14px; }
+
+    .video-box {
+      width:100%; height:170px;
+      background:#020710; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.06);
+      margin-bottom:12px; position:relative;
+    }
+
+    .video-box img { width:100%; height:100%; object-fit:cover; }
+
+    .no-feed {
+      width:100%; height:100%;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:6px;
+    }
+
+    .no-feed-icon  { font-size:22px; opacity:0.15; }
+    .no-feed-label { font-family:var(--mono); font-size:10px; color:rgba(255,255,255,0.2); letter-spacing:2px; }
+
+    .stats-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+
+    .stat { background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); padding:7px 10px; }
+    .stat-label { font-family:var(--mono); font-size:9px; color:var(--dim); letter-spacing:2px; margin-bottom:3px; }
+    .stat-value { font-family:var(--mono); font-size:18px; color:white; line-height:1; }
+    .stat-value.green { color:var(--green); }
+    .stat-value.red   { color:var(--red); }
+    .stat-value.amber { color:var(--amber); }
+
+    .amb-alert {
+      display:none; margin-top:8px; padding:6px 10px;
+      background:rgba(255,45,85,0.1); border:1px solid var(--red);
+      font-family:var(--mono); font-size:10px;
+      color:var(--red); letter-spacing:2px;
+      animation:flash 0.8s ease-in-out infinite;
+    }
+
+    @keyframes flash { 0%,100%{opacity:1;background:rgba(255,45,85,0.1)} 50%{opacity:0.6;background:rgba(255,45,85,0.25)} }
+
+    footer {
+      max-width:1200px; margin:0 auto;
+      padding:16px 24px;
+      display:flex; justify-content:space-between; align-items:center;
+      border-top:1px solid var(--border);
+    }
+
+    .footer-stats { display:flex; gap:32px; }
+
+    .footer-stat-val   { font-family:var(--mono); font-size:20px; color:var(--green); }
+    .footer-stat-label { font-family:var(--mono); font-size:9px; color:var(--dim); letter-spacing:2px; margin-top:2px; }
+
+    .btn-group { display:flex; gap:10px; }
+
+    .btn {
+      padding:9px 20px; font-family:var(--display); font-size:13px;
+      font-weight:700; letter-spacing:2px; text-transform:uppercase;
+      cursor:pointer; border:1px solid; background:transparent; transition:all 0.2s;
+    }
+
+    .btn-primary  { border-color:var(--green); color:var(--green); }
+    .btn-primary:hover  { background:rgba(0,255,180,0.1); }
+    .btn-secondary { border-color:rgba(255,255,255,0.15); color:rgba(255,255,255,0.5); }
+    .btn-secondary:hover { border-color:rgba(255,255,255,0.3); color:rgba(255,255,255,0.8); }
+  </style>
+</head>
+<body>
+
+<div class="sys-bar">
+  <span>ITMS — INTELLIGENT TRAFFIC MANAGEMENT SYSTEM v2.0</span>
+  <span id="sysbar-time">LOADING...</span>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">ITMS</div>
+    <div>
+      <div class="system-title">Traffic Control Center</div>
+      <div class="system-sub">LIVE MONITORING · 4 LANES ACTIVE</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:24px">
+    <div class="status-dot"><div class="dot"></div>SYSTEM ONLINE</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<main id="laneGrid"></main>
+
+<footer>
+  <div class="footer-stats">
+    <div class="footer-stat">
+      <div class="footer-stat-val" id="total-vehicles">0</div>
+      <div class="footer-stat-label">TOTAL VEHICLES</div>
+    </div>
+    <div class="footer-stat">
+      <div class="footer-stat-val" id="active-green">—</div>
+      <div class="footer-stat-label">ACTIVE GREEN LANE</div>
+    </div>
+    <div class="footer-stat">
+      <div class="footer-stat-val" id="emergency-status" style="color:var(--dim)">NONE</div>
+      <div class="footer-stat-label">EMERGENCY STATUS</div>
+    </div>
+  </div>
+  <div class="btn-group">
+    <button class="btn btn-primary"   onclick="location.href='/analysis'">ANALYSIS</button>
+    <button class="btn btn-secondary" onclick="location.href='/upload'">NEW UPLOAD</button>
+    <button class="btn btn-secondary" onclick="location.href='/'">HOME</button>
+  </div>
+</footer>
+
+<script>
+  const lanes = [1,2,3,4];
+
+  // Build lane cards
+  const grid = document.getElementById('laneGrid');
+  lanes.forEach(n => {
+    grid.innerHTML += `
+      <div class="lane active-red" id="lane-card-${n}">
+        <div class="lane-header">
+          <div>
+            <div class="lane-id">LANE // 0${n}</div>
+            <div class="lane-name">SECTOR ${n}</div>
+          </div>
+          <div class="signal-badge red" id="badge${n}">● RED</div>
+        </div>
+        <div class="lane-body">
+          <div class="tl-column">
+            <div class="tl-housing">
+              <div class="bulb r on" id="r${n}"></div>
+              <div class="bulb a"    id="a${n}"></div>
+              <div class="bulb g"    id="g${n}"></div>
+            </div>
+          </div>
+          <div class="feed-area">
+            <div class="video-box">
+              <img src="/video_feed/${n}"
+                   onerror="this.style.display='none';document.getElementById('nofeed${n}').style.display='flex';"
+                   id="feed${n}"/>
+              <div class="no-feed" id="nofeed${n}" style="display:none">
+                <div class="no-feed-icon">◧</div>
+                <div class="no-feed-label">AWAITING FEED · LANE ${n}</div>
+              </div>
+            </div>
+            <div class="stats-row">
+              <div class="stat">
+                <div class="stat-label">VEHICLES</div>
+                <div class="stat-value" id="cnt${n}">00</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">SIGNAL</div>
+                <div class="stat-value red" id="sig${n}">RED</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">GREEN·T</div>
+                <div class="stat-value green" id="gt${n}">--</div>
+              </div>
+            </div>
+            <div class="amb-alert" id="amb${n}">⚠ EMERGENCY VEHICLE — OVERRIDE ACTIVE</div>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    const t   = now.toTimeString().slice(0,8);
+    document.getElementById('clock').textContent        = t;
+    document.getElementById('sysbar-time').textContent  = now.toDateString().toUpperCase() + ' · ' + t;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Poll status API every second
+  function updateDashboard() {
+    fetch('/status_api')
+      .then(r => r.json())
+      .then(data => {
+        let total     = 0;
+        let greenLane = '—';
+        let emergency = false;
+
+        lanes.forEach(n => {
+          const lane = data[n];
+          if (!lane) return;
+
+          const count   = lane.count;
+          const signal  = lane.signal;
+          const gt      = lane.green_time;
+          const amb     = lane.ambulance;
+
+          total += count;
+          if (signal === 'green') greenLane = '0' + n;
+          if (amb) emergency = true;
+
+          // Vehicle count
+          document.getElementById(`cnt${n}`).textContent = String(count).padStart(2,'0');
+
+          // Signal text + color
+          const sigEl = document.getElementById(`sig${n}`);
+          sigEl.textContent = signal.toUpperCase();
+          sigEl.className   = 'stat-value ' + (signal==='green' ? 'green' : signal==='amber' ? 'amber' : 'red');
+
+          // Countdown timer
+          const gtEl = document.getElementById(`gt${n}`);
+          if (signal === 'green' && gt > 0) {
+            if (!window[`timer${n}`] || window[`lastGt${n}`] !== gt) {
+              window[`lastGt${n}`]   = gt;
+              window[`timerVal${n}`] = gt;
+              clearInterval(window[`timer${n}`]);
+              window[`timer${n}`] = setInterval(() => {
+                window[`timerVal${n}`]--;
+                if (window[`timerVal${n}`] <= 0) {
+                  clearInterval(window[`timer${n}`]);
+                  window[`timerVal${n}`] = 0;
+                }
+                const el = document.getElementById(`gt${n}`);
+                if (el) el.textContent = window[`timerVal${n}`] + 's';
+              }, 1000);
+            }
+            gtEl.textContent = window[`timerVal${n}`] + 's';
+          } else {
+            clearInterval(window[`timer${n}`]);
+            window[`timer${n}`] = null;
+            gtEl.textContent    = '--';
+          }
+
+          // Traffic light bulbs
+          document.getElementById(`r${n}`).className = 'bulb r' + (signal==='red'   ? ' on' : '');
+          document.getElementById(`a${n}`).className = 'bulb a' + (signal==='amber' ? ' on' : '');
+          document.getElementById(`g${n}`).className = 'bulb g' + (signal==='green' ? ' on' : '');
+
+          // Badge
+          const badge     = document.getElementById(`badge${n}`);
+          badge.textContent = signal==='green' ? '● GREEN' : signal==='amber' ? '● AMBER' : '● RED';
+          badge.className   = 'signal-badge ' + signal;
+
+          // Card border
+          const card    = document.getElementById(`lane-card-${n}`);
+          card.className = 'lane ' + (
+            amb       ? 'emergency'    :
+            signal==='green' ? 'active-green' :
+            signal==='amber' ? 'active-amber' :
+            'active-red'
+          );
+
+          // Ambulance alert
+          document.getElementById(`amb${n}`).style.display = amb ? 'block' : 'none';
+        });
+
+        // Footer
+        document.getElementById('total-vehicles').textContent = total;
+        document.getElementById('active-green').textContent   = greenLane;
+
+        const emEl       = document.getElementById('emergency-status');
+        emEl.textContent = emergency ? '⚠ ACTIVE' : 'NONE';
+        emEl.style.color = emergency ? 'var(--red)' : 'var(--dim)';
+      })
+      .catch(() => {});
+  }
+
+  setInterval(updateDashboard, 1000);
+  updateDashboard();
+</script>
+
+</body>
+</html>

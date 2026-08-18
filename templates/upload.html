@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ITMS — Upload Videos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #030810;
+      --surface: #060f1e;
+      --panel:   #0a1628;
+      --border:  rgba(0,255,180,0.12);
+      --green:   #00ffb4;
+      --red:     #ff2d55;
+      --amber:   #ffaa00;
+      --dim:     rgba(255,255,255,0.35);
+      --mono:    'Share Tech Mono', monospace;
+      --display: 'Rajdhani', sans-serif;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background:var(--bg); font-family:var(--display);
+      color:white; min-height:100vh;
+    }
+
+    body::before {
+      content:''; position:fixed; inset:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+      pointer-events:none; z-index:999;
+    }
+
+    .sys-bar {
+      background:#020710;
+      border-bottom:1px solid rgba(0,255,180,0.06);
+      padding:4px 28px;
+      display:flex; justify-content:space-between;
+      font-family:var(--mono); font-size:10px;
+      color:rgba(255,255,255,0.2); letter-spacing:1px;
+    }
+
+    header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 28px;
+      border-bottom:1px solid var(--border);
+      background:var(--surface);
+    }
+
+    .logo-mark {
+      width:36px; height:36px; border:2px solid var(--green);
+      display:grid; place-items:center;
+      font-family:var(--mono); font-size:11px;
+      color:var(--green); letter-spacing:1px;
+    }
+
+    .header-left { display:flex; align-items:center; gap:16px; }
+
+    .system-title {
+      font-size:13px; font-weight:700;
+      letter-spacing:4px; color:rgba(255,255,255,0.8); text-transform:uppercase;
+    }
+
+    .system-sub {
+      font-family:var(--mono); font-size:10px;
+      color:var(--dim); letter-spacing:2px; margin-top:2px;
+    }
+
+    .status-dot {
+      display:flex; align-items:center; gap:8px;
+      font-family:var(--mono); font-size:11px; color:var(--green);
+    }
+
+    .dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation:blink 2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .clock { font-family:var(--mono); font-size:13px; color:rgba(255,255,255,0.6); letter-spacing:2px; }
+
+    /* Page content */
+    .page-content { max-width:960px; margin:0 auto; padding:40px 24px; }
+
+    .page-header { margin-bottom:36px; }
+
+    .page-tag {
+      font-family:var(--mono); font-size:10px;
+      color:var(--green); letter-spacing:4px; margin-bottom:12px;
+      display:flex; align-items:center; gap:10px;
+    }
+
+    .page-tag::before { content:''; width:20px; height:1px; background:var(--green); }
+
+    .page-title {
+      font-size:32px; font-weight:700;
+      letter-spacing:3px; text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    .page-sub {
+      font-family:var(--mono); font-size:11px;
+      color:var(--dim); letter-spacing:2px;
+    }
+
+    /* Grid */
+    .lane-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:20px; margin-bottom:32px;
+    }
+
+    .lane-card {
+      background:var(--surface);
+      border:1px solid var(--border);
+      padding:24px;
+      position:relative;
+    }
+
+    .lane-card::before {
+      content:''; position:absolute; top:0; left:0;
+      width:12px; height:12px;
+      border-top:2px solid var(--green); border-left:2px solid var(--green);
+    }
+
+    .lane-card::after {
+      content:''; position:absolute; bottom:0; right:0;
+      width:12px; height:12px;
+      border-bottom:2px solid var(--green); border-right:2px solid var(--green);
+    }
+
+    .lane-card-header {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:18px;
+    }
+
+    .lane-num {
+      font-family:var(--mono); font-size:10px;
+      color:var(--green); letter-spacing:3px;
+    }
+
+    .lane-label {
+      font-size:18px; font-weight:700;
+      letter-spacing:2px;
+    }
+
+    .lane-status {
+      font-family:var(--mono); font-size:9px;
+      color:var(--dim); letter-spacing:2px;
+      padding:3px 10px; border:1px solid rgba(255,255,255,0.1);
+    }
+
+    .upload-zone {
+      border:1px dashed rgba(0,255,180,0.25);
+      padding:24px 16px;
+      text-align:center;
+      cursor:pointer;
+      transition:all 0.2s;
+      background:rgba(0,255,180,0.02);
+    }
+
+    .upload-zone:hover {
+      border-color:var(--green);
+      background:rgba(0,255,180,0.06);
+    }
+
+    .upload-icon {
+      font-size:24px; margin-bottom:8px; opacity:0.4;
+    }
+
+    .upload-text {
+      font-family:var(--mono); font-size:11px;
+      color:rgba(255,255,255,0.4); letter-spacing:2px;
+    }
+
+    input[type=file] { display:none; }
+
+    .file-name {
+      font-family:var(--mono); font-size:10px;
+      color:var(--green); letter-spacing:1px;
+      margin-top:10px; min-height:16px;
+    }
+
+    /* Submit */
+    .submit-row { text-align:center; }
+
+    .submit-btn {
+      padding:16px 60px;
+      background:transparent;
+      border:1px solid var(--green);
+      color:var(--green);
+      font-family:var(--display); font-size:16px;
+      font-weight:700; letter-spacing:4px;
+      text-transform:uppercase; cursor:pointer;
+      transition:all 0.2s; position:relative;
+    }
+
+    .submit-btn::before {
+      content:''; position:absolute;
+      top:4px; left:4px; right:-4px; bottom:-4px;
+      border:1px solid rgba(0,255,180,0.15);
+      pointer-events:none;
+    }
+
+    .submit-btn:hover { background:rgba(0,255,180,0.1); }
+
+    .submit-note {
+      font-family:var(--mono); font-size:10px;
+      color:var(--dim); letter-spacing:2px; margin-top:14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sys-bar">
+  <span>ITMS — INTELLIGENT TRAFFIC MANAGEMENT SYSTEM v2.0</span>
+  <span id="sysbar-time">LOADING...</span>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">ITMS</div>
+    <div>
+      <div class="system-title">Traffic Control Center</div>
+      <div class="system-sub">VIDEO FEED UPLOAD · LANE CONFIGURATION</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:24px">
+    <div class="status-dot"><div class="dot"></div>SYSTEM ONLINE</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="page-content">
+  <div class="page-header">
+    <div class="page-tag">// STEP 01 OF 02</div>
+    <div class="page-title">Upload Traffic Feeds</div>
+    <div class="page-sub">ASSIGN ONE VIDEO FILE PER LANE · AI DETECTION STARTS IMMEDIATELY AFTER UPLOAD</div>
+  </div>
+
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+    <div class="lane-grid">
+      <div class="lane-card">
+        <div class="lane-card-header">
+          <div>
+            <div class="lane-num">LANE // 01</div>
+            <div class="lane-label">SECTOR 1</div>
+          </div>
+          <div class="lane-status" id="st1">UNASSIGNED</div>
+        </div>
+        <label for="lane1">
+          <div class="upload-zone">
+            <div class="upload-icon">▤</div>
+            <div class="upload-text">SELECT VIDEO FILE</div>
+          </div>
+        </label>
+        <input type="file" name="lane1" id="lane1" accept="video/*" onchange="setFile(this,'st1','n1')"/>
+        <div class="file-name" id="n1"></div>
+      </div>
+
+      <div class="lane-card">
+        <div class="lane-card-header">
+          <div>
+            <div class="lane-num">LANE // 02</div>
+            <div class="lane-label">SECTOR 2</div>
+          </div>
+          <div class="lane-status" id="st2">UNASSIGNED</div>
+        </div>
+        <label for="lane2">
+          <div class="upload-zone">
+            <div class="upload-icon">▤</div>
+            <div class="upload-text">SELECT VIDEO FILE</div>
+          </div>
+        </label>
+        <input type="file" name="lane2" id="lane2" accept="video/*" onchange="setFile(this,'st2','n2')"/>
+        <div class="file-name" id="n2"></div>
+      </div>
+
+      <div class="lane-card">
+        <div class="lane-card-header">
+          <div>
+            <div class="lane-num">LANE // 03</div>
+            <div class="lane-label">SECTOR 3</div>
+          </div>
+          <div class="lane-status" id="st3">UNASSIGNED</div>
+        </div>
+        <label for="lane3">
+          <div class="upload-zone">
+            <div class="upload-icon">▤</div>
+            <div class="upload-text">SELECT VIDEO FILE</div>
+          </div>
+        </label>
+        <input type="file" name="lane3" id="lane3" accept="video/*" onchange="setFile(this,'st3','n3')"/>
+        <div class="file-name" id="n3"></div>
+      </div>
+
+      <div class="lane-card">
+        <div class="lane-card-header">
+          <div>
+            <div class="lane-num">LANE // 04</div>
+            <div class="lane-label">SECTOR 4</div>
+          </div>
+          <div class="lane-status" id="st4">UNASSIGNED</div>
+        </div>
+        <label for="lane4">
+          <div class="upload-zone">
+            <div class="upload-icon">▤</div>
+            <div class="upload-text">SELECT VIDEO FILE</div>
+          </div>
+        </label>
+        <input type="file" name="lane4" id="lane4" accept="video/*" onchange="setFile(this,'st4','n4')"/>
+        <div class="file-name" id="n4"></div>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <button type="submit" class="submit-btn">INITIALIZE DETECTION →</button>
+      <div class="submit-note">EMPTY LANES WILL BE SKIPPED · MINIMUM 1 VIDEO REQUIRED</div>
+    </div>
+  </form>
+</div>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    const t = now.toTimeString().slice(0,8);
+    document.getElementById('clock').textContent = t;
+    document.getElementById('sysbar-time').textContent = now.toDateString().toUpperCase() + ' · ' + t;
+  }
+  setInterval(updateClock,1000); updateClock();
+
+  function setFile(input, statusId, nameId) {
+    const f = input.files[0];
+    if (f) {
+      document.getElementById(statusId).textContent = 'ASSIGNED';
+      document.getElementById(statusId).style.color = 'var(--green)';
+      document.getElementById(statusId).style.borderColor = 'rgba(0,255,180,0.3)';
+      document.getElementById(nameId).textContent = '✓ ' + f.name;
+    }
+  }
+</script>
+</body>
+</html>

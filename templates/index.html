@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ITMS — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #030810;
+      --surface: #060f1e;
+      --panel:   #0a1628;
+      --border:  rgba(0,255,180,0.12);
+      --green:   #00ffb4;
+      --red:     #ff2d55;
+      --amber:   #ffaa00;
+      --dim:     rgba(255,255,255,0.35);
+      --mono:    'Share Tech Mono', monospace;
+      --display: 'Rajdhani', sans-serif;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      font-family: var(--display);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content:'';
+      position:fixed; inset:0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+      pointer-events:none; z-index:999;
+    }
+
+    .sys-bar {
+      background: #020710;
+      border-bottom: 1px solid rgba(0,255,180,0.06);
+      padding: 4px 28px;
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 1px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .logo-mark {
+      width:36px; height:36px;
+      border: 2px solid var(--green);
+      display:grid; place-items:center;
+      font-family: var(--mono);
+      font-size:11px; color:var(--green);
+      letter-spacing:1px;
+    }
+
+    .header-left { display:flex; align-items:center; gap:16px; }
+
+    .system-title {
+      font-size:13px; font-weight:700;
+      letter-spacing:4px;
+      color:rgba(255,255,255,0.8);
+      text-transform:uppercase;
+    }
+
+    .system-sub {
+      font-family:var(--mono); font-size:10px;
+      color:var(--dim); letter-spacing:2px; margin-top:2px;
+    }
+
+    .status-dot {
+      display:flex; align-items:center; gap:8px;
+      font-family:var(--mono); font-size:11px; color:var(--green);
+    }
+
+    .dot {
+      width:8px; height:8px; border-radius:50%;
+      background:var(--green);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .clock { font-family:var(--mono); font-size:13px; color:rgba(255,255,255,0.6); letter-spacing:2px; }
+
+    /* Hero */
+    .hero {
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:80px;
+      padding:60px 40px;
+    }
+
+    .hero-left { max-width:480px; }
+
+    .hero-tag {
+      font-family:var(--mono); font-size:11px;
+      color:var(--green); letter-spacing:4px;
+      margin-bottom:20px;
+      display:flex; align-items:center; gap:10px;
+    }
+
+    .hero-tag::before {
+      content:'';
+      width:30px; height:1px;
+      background:var(--green);
+    }
+
+    h1 {
+      font-size:52px; font-weight:700;
+      line-height:1.05;
+      letter-spacing:2px;
+      margin-bottom:20px;
+    }
+
+    h1 span { color:var(--green); }
+
+    .hero-desc {
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--dim);
+      line-height:1.9;
+      letter-spacing:1px;
+      margin-bottom:32px;
+    }
+
+    .hero-stats {
+      display:flex; gap:32px;
+    }
+
+    .hstat-val {
+      font-family:var(--mono); font-size:28px; color:var(--green);
+    }
+
+    .hstat-label {
+      font-family:var(--mono); font-size:9px;
+      color:var(--dim); letter-spacing:2px; margin-top:2px;
+    }
+
+    /* Login card */
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 40px;
+      width: 360px;
+      position: relative;
+    }
+
+    .login-card::before {
+      content:''; position:absolute;
+      top:0; left:0; width:12px; height:12px;
+      border-top:2px solid var(--green);
+      border-left:2px solid var(--green);
+    }
+
+    .login-card::after {
+      content:''; position:absolute;
+      bottom:0; right:0; width:12px; height:12px;
+      border-bottom:2px solid var(--green);
+      border-right:2px solid var(--green);
+    }
+
+    .card-title {
+      font-family:var(--mono); font-size:11px;
+      color:var(--green); letter-spacing:4px;
+      margin-bottom:32px;
+      text-transform:uppercase;
+    }
+
+    .field-label {
+      font-family:var(--mono); font-size:10px;
+      color:var(--dim); letter-spacing:2px;
+      margin-bottom:8px;
+      text-transform:uppercase;
+    }
+
+    input[type=text], input[type=password] {
+      width:100%;
+      padding:12px 16px;
+      background:#020710;
+      border:1px solid rgba(0,255,180,0.15);
+      color:white;
+      font-family:var(--mono); font-size:13px;
+      letter-spacing:2px;
+      outline:none;
+      margin-bottom:24px;
+      transition:border-color 0.2s;
+    }
+
+    input:focus { border-color:var(--green); }
+
+    .login-btn {
+      width:100%; padding:14px;
+      background:transparent;
+      border:1px solid var(--green);
+      color:var(--green);
+      font-family:var(--display); font-size:14px;
+      font-weight:700; letter-spacing:4px;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:all 0.2s;
+    }
+
+    .login-btn:hover {
+      background:rgba(0,255,180,0.1);
+    }
+
+    .error-msg {
+      font-family:var(--mono); font-size:10px;
+      color:var(--red); letter-spacing:2px;
+      margin-top:14px; text-align:center;
+      display:none;
+    }
+
+    /* Vertical line decoration */
+    .v-line {
+      width:1px; height:120px;
+      background:linear-gradient(to bottom, transparent, var(--green), transparent);
+      opacity:0.3;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sys-bar">
+  <span>ITMS — INTELLIGENT TRAFFIC MANAGEMENT SYSTEM v2.0</span>
+  <span id="sysbar-time">LOADING...</span>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">ITMS</div>
+    <div>
+      <div class="system-title">Traffic Control Center</div>
+      <div class="system-sub">INTELLIGENT TRAFFIC MANAGEMENT SYSTEM</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:24px">
+    <div class="status-dot"><div class="dot"></div>SYSTEM ONLINE</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">AI-POWERED TRAFFIC CONTROL</div>
+    <h1>INTELLIGENT<br>TRAFFIC<br><span>MANAGEMENT</span></h1>
+    <p class="hero-desc">
+      Real-time vehicle detection using YOLOv8<br>
+      Adaptive signal control based on density<br>
+      Emergency vehicle priority override<br>
+      Live analytics and performance metrics
+    </p>
+    <div class="hero-stats">
+      <div>
+        <div class="hstat-val">4</div>
+        <div class="hstat-label">LANES MONITORED</div>
+      </div>
+      <div>
+        <div class="hstat-val">~2s</div>
+        <div class="hstat-label">EMERGENCY RESPONSE</div>
+      </div>
+      <div>
+        <div class="hstat-val">38%</div>
+        <div class="hstat-label">WAIT TIME REDUCTION</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="v-line"></div>
+
+  <div class="login-card">
+    <div class="card-title">// ADMIN ACCESS</div>
+
+    <div class="field-label">USERNAME</div>
+    <input type="text" id="username" placeholder="traffic-admin"/>
+
+    <div class="field-label">PASSWORD</div>
+    <input type="password" id="password" placeholder="••••••••"/>
+
+    <button class="login-btn" onclick="doLogin()">AUTHENTICATE →</button>
+    <div class="error-msg" id="err">ACCESS DENIED — INVALID CREDENTIALS</div>
+  </div>
+</div>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    const t = now.toTimeString().slice(0,8);
+    document.getElementById('clock').textContent = t;
+    document.getElementById('sysbar-time').textContent = now.toDateString().toUpperCase() + ' · ' + t;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function doLogin() {
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
+    if (u === 'admin' && p === '1234') {
+      window.location.href = '/upload';
+    } else {
+      document.getElementById('err').style.display = 'block';
+    }
+  }
+  document.addEventListener('keypress', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
